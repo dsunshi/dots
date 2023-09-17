@@ -1,0 +1,18 @@
+# Files and folders that stow should ignore
+
+# git
+\.git
+\.gitignore
+
+.+~          # emacs backup files
+\#.*\#       # emacs autosave files
+
+# systemd files
+.+\.service$
+.+\.timer$
+.+\.target$
+
+# org files
+.+\.org$
+
+Makefile

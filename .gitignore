@@ -1,0 +1,11 @@
+# -*- mode: gitignore; -*-
+
+# https://github.com/github/gitignore/blob/main/Global/Emacs.gitignore
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
