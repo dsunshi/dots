@@ -30,11 +30,16 @@ require('packer').startup(function(use)
 
     -- Code Editing (IDE)
     -- =========================================================================
+    -- Rust
+    use 'neovim/nvim-lspconfig'
+    use 'simrat39/rust-tools.nvim'
+    --
+    -- Haskell
     use {
         'mrcjkb/haskell-tools.nvim',
         requires = {
             {'nvim-lua/plenary.nvim'},
-            {'mfussenegger/nvim-dap'}
+            {'mfussenegger/nvim-dap'} -- generic neovim <-> debugger connection
         }
     }
 
