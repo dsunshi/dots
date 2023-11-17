@@ -215,6 +215,7 @@ myLayout = tiled ||| Mirror tiled ||| Full
 myManageHook = composeAll
     [ className =? "MPlayer"        --> doFloat
     , className =? "Gimp"           --> doFloat
+    , className =? "prusa-slicer"   --> doFloat
     , resource  =? "desktop_window" --> doIgnore
     , resource  =? "kdesktop"       --> doIgnore ]
 
@@ -246,7 +247,14 @@ myLogHook = return ()
 --
 -- By default, do nothing.
 myStartupHook = do
-    spawnOnce "Xrandr --output eDP-1 --primary --mode 1920x1200 --pos 0x1080 --rotate normal --output DP-1 --mode 1920x1080 --pos 1920x0 --rotate normal --output DP-2 --off --output DVI-I-2-1 --mode 1920x1080 --pos 0x0 --rotate normal --output DP-1-0 --off --output DP-1-1 --off --output DP-1-2 --off"
+    spawn "killall conky"
+    spawn ("xrandr "
+        ++ "--output eDP-1 --primary --mode 1280x720  --pos 0x0      --rotate left "
+        ++ "--output DP-1            --mode 1920x1080 --pos 3000x618 --rotate normal "
+        ++ "--output DP-2            --mode 1920x1080 --pos 3000x618 --rotate normal "
+        ++ "--output DVI-I-2-1       --mode 1920x1080 --pos 1080x618 --rotate normal")
+    spawn "sleep 2 && conky -c $HOME/.xmonad/nord.conky"
+    spawnOnce "sleep 2 && feh --bg-fill $HOME/.config/wallpapers/totoro-nord.png"
 
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.
