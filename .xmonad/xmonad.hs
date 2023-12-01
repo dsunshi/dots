@@ -323,8 +323,13 @@ monitorNames :: String -> [String]
 monitorNames = map (dropWhile isDisplayPrefix . secondWord) . tail . lines
 
 xrandr :: String -> String
-xrandr stdin = "xrandr " ++
-    unwords (map (output $ numMonitors stdin) $ monitorNames stdin)
+xrandr stdin
+    | count == 2 = xrandr' (names ++ ["DVI-I-2-1"])
+    | otherwise  = xrandr' names
+    where
+        count = numMonitors stdin
+        names = monitorNames stdin
+        xrandr' names' = "xrandr " ++ unwords (map (output count) names')
 
 digitToInt :: Char -> Int
 digitToInt '0' = 0
@@ -337,6 +342,7 @@ digitToInt '6' = 6
 digitToInt '7' = 7
 digitToInt '8' = 8
 digitToInt '9' = 9
+digitToInt _   = 0
 -- Perform an arbitrary action each time xmonad starts or is restarted
 -- with mod-q.  Used by, e.g., XMonad.Layout.PerWorkspace to initialize
 -- per-workspace layout choices.
@@ -347,7 +353,7 @@ myStartupHook = do
     result <- runProcessWithInput "xrandr" ["--listmonitors"] []
     spawn $ xrandr result
     spawn "sleep 2 && conky -c $HOME/.xmonad/nord.conky"
-    spawn "xinput --map-to-output \"ELAN9008:00 04F3:2ED7\" eDP-1"
+    spawn "sleep 2 && xinput --map-to-output \"ELAN9008:00 04F3:2ED7\" eDP-1"
     spawnOnce "sleep 2 && feh --bg-fill $HOME/.config/wallpapers/totoro-nord.png"
 
 ------------------------------------------------------------------------
