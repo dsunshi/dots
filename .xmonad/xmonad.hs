@@ -15,6 +15,8 @@ import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
 import XMonad.Util.SpawnOnce (spawnOnce)
+import XMonad.Util.Run (runProcessWithInput)
+import XMonad.Util.NamedScratchpad
 
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
@@ -54,8 +56,19 @@ myWorkspaces    = ["1","2","3","4","5","6","7","8","9"]
 -- Border colors for unfocused and focused windows, respectively.
 --
 myNormalBorderColor  = "#4c566a"
-myFocusedBorderColor = "#a3be8c"
+myFocusedBorderColor = "#b48ead"
 
+myScratchPads :: [NamedScratchpad]
+myScratchPads = [ NS "dots" spawnNeovide findDots manageDots ]
+    where
+        spawnNeovide = "neovide --x11-wm-class dots -- -c \"cd ~/ideas/dots/\""
+        findDots     = className =? "dots"
+        manageDots   = customFloating $ W.RationalRect l t w h
+            where
+                h = 0.75
+                w = 0.65
+                t = 0.05
+                l = 0.05
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
 --
@@ -65,7 +78,9 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     [ ((modm .|. shiftMask, xK_Return), spawn $ XMonad.terminal conf)
 
     -- launch dmenu
-    , ((modm,               xK_p     ), spawn "rofi -show run")
+    , ((modm,               xK_p     ), spawn "dmenu_run --font \"iosevka-16\" -l 10 --nb \"#2E3440\" --nf \"#D8DEE9\" --sb \"#B48EAD\" --sf \"#000000\"")
+
+    , ((modm,               xK_d     ), namedScratchpadAction myScratchPads "dots")
 
     -- launch gmrun
     , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
@@ -216,8 +231,9 @@ myManageHook = composeAll
     [ className =? "MPlayer"        --> doFloat
     , className =? "Gimp"           --> doFloat
     , className =? "prusa-slicer"   --> doFloat
+    , className =? "neovide"   --> doFloat
     , resource  =? "desktop_window" --> doIgnore
-    , resource  =? "kdesktop"       --> doIgnore ]
+    , resource  =? "kdesktop"       --> doIgnore ] <+> namedScratchpadManageHook myScratchPads
 
 ------------------------------------------------------------------------
 -- Event handling
@@ -241,6 +257,86 @@ myLogHook = return ()
 ------------------------------------------------------------------------
 -- Startup hook
 
+-- Settings for each screen
+mode :: String -> String
+mode name = " --mode " ++ mode' name
+
+mode' :: String -> String
+mode' name
+    | name == "eDP-1"     = "1920x1200"
+    | name == "DVI-I-2-1" = "1920x1080"
+    | name == "DP-1"      = "1920x1080"
+    | name == "DP-2"      = "1920x1080"
+    | otherwise           = undefined
+
+pos :: String -> String
+pos name = " --pos " ++ pos' name
+
+pos' :: String -> String
+pos' name
+    | name == "eDP-1"     = "0x0"
+    | name == "DVI-I-2-1" = "1200x58"
+    | name == "DP-1"      = "3120x58"
+    | name == "DP-2"      = "3120x58"
+    | otherwise           = undefined
+
+rotate :: String -> Int -> String
+rotate name count = " --rotate " ++ rotate' name count
+
+rotate' :: String -> Int -> String
+rotate' name count
+    | name == "eDP-1"     = if count == 1 then "normal" else "left"
+    | name == "DVI-I-2-1" = "normal"
+    | name == "DP-1"      = "normal"
+    | name == "DP-2"      = "normal"
+    | otherwise           = undefined
+
+isPrimary :: String -> String
+isPrimary name
+    | name == "eDP-1"     = ""
+    | name == "DVI-I-2-1" = ""
+    | name == "DP-1"      = " --primary "
+    | name == "DP-2"      = " --primary "
+    | otherwise           = undefined
+
+output :: Int -> String -> String
+output count name = " --output " ++ name
+    ++ isPrimary name
+    ++ mode name
+    ++ pos name
+    ++ rotate name count
+
+-- The number of monitors is the last character of the first line
+-- returned by `xrandr --listmonitors`
+numMonitors :: String -> Int
+numMonitors = digitToInt . last . head . lines
+
+isDisplayPrefix :: Char -> Bool
+isDisplayPrefix '+' = True
+isDisplayPrefix '*' = True
+isDisplayPrefix _   = False
+
+secondWord :: String -> String
+secondWord = (!! 1) . words
+
+monitorNames :: String -> [String]
+monitorNames = map (dropWhile isDisplayPrefix . secondWord) . tail . lines
+
+xrandr :: String -> String
+xrandr stdin = "xrandr " ++
+    unwords (map (output $ numMonitors stdin) $ monitorNames stdin)
+
+digitToInt :: Char -> Int
+digitToInt '0' = 0
+digitToInt '1' = 1
+digitToInt '2' = 2
+digitToInt '3' = 3
+digitToInt '4' = 4
+digitToInt '5' = 5
+digitToInt '6' = 6
+digitToInt '7' = 7
+digitToInt '8' = 8
+digitToInt '9' = 9
 -- Perform an arbitrary action each time xmonad starts or is restarted
 -- with mod-q.  Used by, e.g., XMonad.Layout.PerWorkspace to initialize
 -- per-workspace layout choices.
@@ -248,12 +344,10 @@ myLogHook = return ()
 -- By default, do nothing.
 myStartupHook = do
     spawn "killall conky"
-    spawn ("xrandr "
-        ++ "--output eDP-1 --primary --mode 1280x720  --pos 0x0      --rotate left "
-        ++ "--output DP-1            --mode 1920x1080 --pos 3000x618 --rotate normal "
-        ++ "--output DP-2            --mode 1920x1080 --pos 3000x618 --rotate normal "
-        ++ "--output DVI-I-2-1       --mode 1920x1080 --pos 1080x618 --rotate normal")
+    result <- runProcessWithInput "xrandr" ["--listmonitors"] []
+    spawn $ xrandr result
     spawn "sleep 2 && conky -c $HOME/.xmonad/nord.conky"
+    spawn "xinput --map-to-output \"ELAN9008:00 04F3:2ED7\" eDP-1"
     spawnOnce "sleep 2 && feh --bg-fill $HOME/.config/wallpapers/totoro-nord.png"
 
 ------------------------------------------------------------------------

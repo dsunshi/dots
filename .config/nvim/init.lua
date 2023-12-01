@@ -43,6 +43,11 @@ require('packer').startup(function(use)
         }
     }
 
+    --
+    --
+    use 'ixru/nvim-markdown'
+    use 'dhruvasagar/vim-table-mode'
+
     -- Status line
     -- =========================================================================
     use {
