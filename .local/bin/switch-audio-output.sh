@@ -1,4 +1,3 @@
-#!/bin/bash
 # Switch the current audio output device.
 # Without options: Toggle between two sinks.
 # This script works for PulseAudio; pactl must be installed.
