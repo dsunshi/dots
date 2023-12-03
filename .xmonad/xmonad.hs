@@ -18,6 +18,9 @@ import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.Run (runProcessWithInput)
 import XMonad.Util.NamedScratchpad
 
+
+import XMonad.Layout.ShowWName (SWNConfig(..), showWName')
+import XMonad.Hooks.SetWMName
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
@@ -65,10 +68,10 @@ myScratchPads = [ NS "dots" spawnNeovide findDots manageDots ]
         findDots     = className =? "dots"
         manageDots   = customFloating $ W.RationalRect l t w h
             where
-                h = 0.75
-                w = 0.65
-                t = 0.05
-                l = 0.05
+                h = 1/2
+                w = 1/2
+                t = 1/2
+                l = 1/2
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
 --
@@ -82,8 +85,8 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     , ((modm,               xK_d     ), namedScratchpadAction myScratchPads "dots")
 
-    -- launch gmrun
-    , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
+    -- switch audio output
+    , ((modm,               xK_o     ), spawn "$HOME/.local/bin/dmenu_audio")
 
     -- close focused window
     , ((modm .|. shiftMask, xK_c     ), kill)
@@ -91,32 +94,14 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
      -- Rotate through the available layout algorithms
     , ((modm,               xK_space ), sendMessage NextLayout)
 
-    --  Reset the layouts on the current workspace to default
-    , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
-
     -- Resize viewed windows to the correct size
     , ((modm,               xK_n     ), refresh)
-
-    -- Move focus to the next window
-    , ((modm,               xK_Tab   ), windows W.focusDown)
-
-    -- Move focus to the next window
-    , ((modm,               xK_j     ), windows W.focusDown)
-
-    -- Move focus to the previous window
-    , ((modm,               xK_k     ), windows W.focusUp  )
-
-    -- Move focus to the master window
-    , ((modm,               xK_m     ), windows W.focusMaster  )
 
     -- Swap the focused window and the master window
     , ((modm,               xK_Return), windows W.swapMaster)
 
-    -- Swap the focused window with the next window
-    , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  )
-
-    -- Swap the focused window with the previous window
-    , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
+    , ((modm,               xK_Tab), windows W.focusDown)
+    , ((modm,               xK_m  ), windows W.focusMaster)
 
     -- Shrink the master area
     , ((modm,               xK_h     ), sendMessage Shrink)
@@ -133,20 +118,12 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- Deincrement the number of windows in the master area
     , ((modm              , xK_period), sendMessage (IncMasterN (-1)))
 
-    -- Toggle the status bar gap
-    -- Use this binding with avoidStruts from Hooks.ManageDocks.
-    -- See also the statusBar function from Hooks.DynamicLog.
-    --
-    -- , ((modm              , xK_b     ), sendMessage ToggleStruts)
-
     -- Quit xmonad
     , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
 
     -- Restart xmonad
     , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
 
-    -- Run xmessage with a summary of the default keybindings (useful for beginners)
-    , ((modm .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
     ]
     ++
 
@@ -164,7 +141,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
     --
     [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
-        | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
+        | (key, sc) <- zip [xK_6, xK_4, xK_5] [0..]
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
@@ -188,6 +165,17 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
     ]
 
 ------------------------------------------------------------------------
+
+myShowWNameTheme :: SWNConfig
+myShowWNameTheme = def
+  { swn_font              = "xft:iosevka:bold:size=36"
+  , swn_fade              = 1.0
+  , swn_bgcolor           = "#1c1f24"
+  , swn_color             = "#ffffff"
+  }
+
+
+
 -- Layouts:
 
 -- You can specify and transform your layouts by modifying these values.
@@ -343,6 +331,10 @@ digitToInt '7' = 7
 digitToInt '8' = 8
 digitToInt '9' = 9
 digitToInt _   = 0
+
+delayedSpawn :: String -> X ()
+delayedSpawn c = spawn ("sleep 2 && " ++ c)
+
 -- Perform an arbitrary action each time xmonad starts or is restarted
 -- with mod-q.  Used by, e.g., XMonad.Layout.PerWorkspace to initialize
 -- per-workspace layout choices.
@@ -352,9 +344,10 @@ myStartupHook = do
     spawn "killall conky"
     result <- runProcessWithInput "xrandr" ["--listmonitors"] []
     spawn $ xrandr result
-    spawn "sleep 2 && conky -c $HOME/.xmonad/nord.conky"
-    spawn "sleep 2 && xinput --map-to-output \"ELAN9008:00 04F3:2ED7\" eDP-1"
-    spawnOnce "sleep 2 && feh --bg-fill $HOME/.config/wallpapers/totoro-nord.png"
+    spawnOnce "picom"
+    delayedSpawn "conky -c $HOME/.xmonad/nord.conky"
+    delayedSpawn "xinput --map-to-output \"ELAN9008:00 04F3:2ED7\" eDP-1"
+    delayedSpawn "feh --bg-fill $HOME/.config/wallpapers/totoro-nord.png"
 
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.
@@ -385,7 +378,7 @@ defaults = def {
         mouseBindings      = myMouseBindings,
 
       -- hooks, layouts
-        layoutHook         = myLayout,
+        layoutHook         = showWName' myShowWNameTheme $ myLayout,
         manageHook         = myManageHook,
         handleEventHook    = myEventHook,
         logHook            = myLogHook,

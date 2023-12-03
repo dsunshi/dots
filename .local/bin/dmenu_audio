@@ -1,5 +1,5 @@
 
-id=$(switch-audio-output.sh -l |\
+id=$(~/.local/bin/switch-audio-output.sh -l |\
     awk '{ print $1, $2, $7 }' |\
     dmenu -i \
         --font "iosevka-16"\
@@ -10,4 +10,4 @@ id=$(switch-audio-output.sh -l |\
         --sf "#000000" |\
     awk '{ print $1 }')
 
-switch-audio-output.sh -s $id
+~/.local/bin/switch-audio-output.sh -s $id
