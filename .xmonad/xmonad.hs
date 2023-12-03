@@ -17,6 +17,7 @@ import qualified Data.Map        as M
 import XMonad.Util.SpawnOnce (spawnOnce)
 import XMonad.Util.Run (runProcessWithInput)
 import XMonad.Util.NamedScratchpad
+import XMonad.Actions.PhysicalScreens
 
 
 import XMonad.Layout.ShowWName (SWNConfig(..), showWName')
@@ -95,7 +96,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_space ), sendMessage NextLayout)
 
     -- Resize viewed windows to the correct size
-    , ((modm,               xK_n     ), refresh)
+    , ((modm,               xK_r     ), refresh)
 
     -- Swap the focused window and the master window
     , ((modm,               xK_Return), windows W.swapMaster)
@@ -141,7 +142,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
     --
     [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
-        | (key, sc) <- zip [xK_6, xK_4, xK_5] [0..]
+        | (key, sc) <- zip [xK_n, xK_e, xK_i] [0..]
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
