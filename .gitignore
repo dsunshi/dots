@@ -6,6 +6,7 @@
 /.emacs.desktop
 /.emacs.desktop.lock
 *.elc
+.local/bin/yazi
 auto-save-list
 tramp
 .\#*

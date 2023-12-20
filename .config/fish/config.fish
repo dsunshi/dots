@@ -5,6 +5,8 @@ alias vim="nvim"
 # 'e' for editor seems fair enough
 alias e="nvim"
 alias wget="wget --inet4-only"
+alias ls='eza -al --color=always --group-directories-first'
+alias cat='bat'
 
 fish_add_path ~/.local/bin
 
@@ -47,3 +49,5 @@ set fish_pager_color_completion $nord6
 set fish_pager_color_description $nord10
 set fish_pager_color_progress $nord12
 set fish_pager_color_secondary $nord1
+
+zoxide init fish | source

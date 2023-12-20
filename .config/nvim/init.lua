@@ -33,6 +33,8 @@ require('packer').startup(function(use)
     -- Rust
     use 'neovim/nvim-lspconfig'
     use 'simrat39/rust-tools.nvim'
+    use 'tpope/vim-commentary'
+    use 'sirtaj/vim-openscad'
     --
     -- Haskell
     use {
@@ -89,6 +91,7 @@ vim.g.rustfmt_autosave = true   -- Format rust code when the buffer is saved
 vim.cmd('filetype indent plugin on')
 vim.cmd('syntax on')
 
+vim.cmd('autocmd FileType openscad setlocal commentstring=\\/\\/\\ %s')
 -- =============================================================================
 -- Colorscheme {{{1
 -- =============================================================================

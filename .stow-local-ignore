@@ -15,4 +15,6 @@
 # org files
 .+\.org$
 
+\.local/bin/src
+
 Makefile

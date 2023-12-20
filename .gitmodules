@@ -1,3 +1,9 @@
 [submodule ".local/share/OpenSCAD/libraries/BOSL2"]
 	path = .local/share/OpenSCAD/libraries/BOSL2
 	url = https://github.com/BelfrySCAD/BOSL2.git
+[submodule ".local/bin/src/yazi"]
+	path = .local/bin/src/yazi
+	url = https://github.com/sxyazi/yazi.git
+[submodule ".tmux/plugins/tpm"]
+	path = .tmux/plugins/tpm
+	url = https://github.com/tmux-plugins/tpm

@@ -9,19 +9,55 @@
 
 import XMonad
 import Data.Monoid
+import System.IO (hClose, hPutStr, hPutStrLn)
 import System.Exit
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
 import XMonad.Util.SpawnOnce (spawnOnce)
-import XMonad.Util.Run (runProcessWithInput)
+import XMonad.Util.Run (runProcessWithInput, spawnPipe)
 import XMonad.Util.NamedScratchpad
 import XMonad.Actions.PhysicalScreens
 
+import XMonad.Hooks.DynamicLog (dynamicLogWithPP, wrap, xmobarPP, xmobarColor, shorten, PP(..))
+import XMonad.Hooks.EwmhDesktops  -- for some fullscreen events, also for xcomposite in obs.
+import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks, ToggleStruts(..))
+import XMonad.Hooks.ManageHelpers (isFullscreen, doFullFloat, doCenterFloat)
+import XMonad.Hooks.ServerMode
+import XMonad.Hooks.SetWMName
+import XMonad.Hooks.StatusBar
+import XMonad.Hooks.StatusBar.PP
+import XMonad.Hooks.WindowSwallowing
+import XMonad.Hooks.WorkspaceHistory
 
 import XMonad.Layout.ShowWName (SWNConfig(..), showWName')
-import XMonad.Hooks.SetWMName
+
+colorScheme = "nord"
+
+colorBack = "#2E3440"
+colorFore = "#D8DEE9"
+
+color01 = "#3B4252"
+color02 = "#BF616A"
+color03 = "#A3BE8C"
+color04 = "#EBCB8B"
+color05 = "#81A1C1"
+color06 = "#B48EAD"
+color07 = "#88C0D0"
+color08 = "#E5E9F0"
+color09 = "#4C566A"
+color10 = "#BF616A"
+color11 = "#A3BE8C"
+color12 = "#EBCB8B"
+color13 = "#81A1C1"
+color14 = "#B48EAD"
+color15 = "#8FBCBB"
+color16 = "#ECEFF4"
+
+colorTrayer :: String
+colorTrayer = "--tint 0x2E3440"
+
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
@@ -56,6 +92,11 @@ myModMask       = mod4Mask
 -- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
 --
 myWorkspaces    = ["1","2","3","4","5","6","7","8","9"]
+
+windowCount :: X (Maybe String)
+windowCount = gets $ Just . show . length . W.integrate' . W.stack . W.workspace . W.current . windowset
+
+
 
 -- Border colors for unfocused and focused windows, respectively.
 --
@@ -187,7 +228,7 @@ myShowWNameTheme = def
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = tiled ||| Mirror tiled ||| Full
+myLayout = avoidStruts (tiled ||| Mirror tiled ||| Full)
   where
      -- default tiling algorithm partitions the screen into two panes
      tiled   = Tall nmaster delta ratio
@@ -219,7 +260,6 @@ myLayout = tiled ||| Mirror tiled ||| Full
 myManageHook = composeAll
     [ className =? "MPlayer"        --> doFloat
     , className =? "Gimp"           --> doFloat
-    , className =? "prusa-slicer"   --> doFloat
     , className =? "neovide"   --> doFloat
     , resource  =? "desktop_window" --> doIgnore
     , resource  =? "kdesktop"       --> doIgnore ] <+> namedScratchpadManageHook myScratchPads
@@ -241,7 +281,7 @@ myEventHook = mempty
 -- Perform an arbitrary action on each internal state change or X event.
 -- See the 'XMonad.Hooks.DynamicLog' extension for examples.
 --
-myLogHook = return ()
+
 
 ------------------------------------------------------------------------
 -- Startup hook
@@ -355,15 +395,12 @@ myStartupHook = do
 
 -- Run xmonad with the settings you specify. No need to modify this.
 --
-main = xmonad defaults
-
--- A structure containing your configuration settings, overriding
--- fields in the default config. Any you don't override, will
--- use the defaults defined in xmonad/XMonad/Config.hs
---
--- No need to modify this.
---
-defaults = def {
+main = do 
+     -- Launching three instances of xmobar on their monitors.
+     xmproc0 <- spawnPipe "xmobar -x 0 $HOME/.config/xmobar/xmobarrc"
+     xmproc1 <- spawnPipe "xmobar -x 1 $HOME/.config/xmobar/xmobarrc"
+     xmproc2 <- spawnPipe "xmobar -x 2 $HOME/.config/xmobar/xmobarrc"
+     xmonad $ docks def {
       -- simple stuff
         terminal           = myTerminal,
         focusFollowsMouse  = myFocusFollowsMouse,
@@ -379,12 +416,42 @@ defaults = def {
         mouseBindings      = myMouseBindings,
 
       -- hooks, layouts
-        layoutHook         = showWName' myShowWNameTheme $ myLayout,
+        layoutHook         = showWName' myShowWNameTheme myLayout,
         manageHook         = myManageHook,
         handleEventHook    = myEventHook,
-        logHook            = myLogHook,
+        logHook            = dynamicLogWithPP $  filterOutWsPP [scratchpadWorkspaceTag] $ xmobarPP
+        { ppOutput = \x -> hPutStrLn xmproc0 x   -- xmobar on monitor 1
+                        >> hPutStrLn xmproc1 x   -- xmobar on monitor 2
+                        >> hPutStrLn xmproc2 x   -- xmobar on monitor 3
+        , ppCurrent = xmobarColor color06 "" . wrap
+                      ("<box type=Bottom width=2 mb=2 color=" ++ color06 ++ ">") "</box>"
+          -- Visible but not current workspace
+        , ppVisible = xmobarColor color06 ""
+          -- Hidden workspace
+        , ppHidden = xmobarColor color05 "" . wrap
+                     ("<box type=Top width=2 mt=2 color=" ++ color05 ++ ">") "</box>"
+          -- Hidden workspaces (no windows)
+        , ppHiddenNoWindows = xmobarColor color05 ""
+          -- Title of active window
+        , ppTitle = xmobarColor color16 "" . shorten 60
+          -- Separator character
+        , ppSep =  "<fc=" ++ color09 ++ "> <fn=1>|</fn> </fc>"
+          -- Urgent workspace
+        , ppUrgent = xmobarColor color02 "" . wrap "!" "!"
+          -- Adding # of windows on current workspace to the bar
+        , ppExtras  = [windowCount]
+          -- order of things in xmobar
+        , ppOrder  = \(ws:l:t:ex) -> [ws,l]++ex++[t]
+        },
         startupHook        = myStartupHook
     }
+
+-- A structure containing your configuration settings, overriding
+-- fields in the default config. Any you don't override, will
+-- use the defaults defined in xmonad/XMonad/Config.hs
+--
+-- No need to modify this.
+--
 
 -- | Finally, a copy of the default bindings in simple textual tabular format.
 help :: String
