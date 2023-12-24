@@ -20,6 +20,30 @@ import XMonad.Util.Run (runProcessWithInput, spawnPipe)
 import XMonad.Util.NamedScratchpad
 import XMonad.Actions.PhysicalScreens
 
+import XMonad.Layout.Accordion
+import XMonad.Layout.GridVariants (Grid(Grid))
+import XMonad.Layout.SimplestFloat
+import XMonad.Layout.Spiral
+import XMonad.Layout.ResizableTile
+import XMonad.Layout.Tabbed
+import XMonad.Layout.ThreeColumns
+import qualified XMonad.Layout.ToggleLayouts as T (toggleLayouts, ToggleLayout(Toggle))
+
+
+import XMonad.Layout.LayoutModifier
+import XMonad.Layout.LimitWindows (limitWindows, increaseLimit, decreaseLimit)
+import XMonad.Layout.MultiToggle (mkToggle, single, EOT(EOT), (??))
+import XMonad.Layout.MultiToggle.Instances (StdTransformers(NBFULL, MIRROR, NOBORDERS))
+import XMonad.Layout.NoBorders
+import XMonad.Layout.Renamed
+import XMonad.Layout.ShowWName
+import XMonad.Layout.Simplest
+import XMonad.Layout.Spacing
+import XMonad.Layout.SubLayouts
+import XMonad.Layout.WindowArranger (windowArrange, WindowArrangerMsg(..))
+import XMonad.Layout.WindowNavigation
+
+
 import XMonad.Hooks.DynamicLog (dynamicLogWithPP, wrap, xmobarPP, xmobarColor, shorten, PP(..))
 import XMonad.Hooks.EwmhDesktops  -- for some fullscreen events, also for xcomposite in obs.
 import XMonad.Hooks.ManageDocks (avoidStruts, docks, manageDocks, ToggleStruts(..))
@@ -228,7 +252,13 @@ myShowWNameTheme = def
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = avoidStruts (tiled ||| Mirror tiled ||| Full)
+floats   = renamed [Replace "floats"]
+           $ smartBorders
+           $ simplestFloat
+
+myLayout = avoidStruts
+    $ windowArrange
+    $ T.toggleLayouts floats (tiled ||| Mirror tiled ||| Full ||| floats)
   where
      -- default tiling algorithm partitions the screen into two panes
      tiled   = Tall nmaster delta ratio
@@ -260,7 +290,7 @@ myLayout = avoidStruts (tiled ||| Mirror tiled ||| Full)
 myManageHook = composeAll
     [ className =? "MPlayer"        --> doFloat
     , className =? "Gimp"           --> doFloat
-    , className =? "neovide"   --> doFloat
+    , className =? "dots"           --> doCenterFloat
     , resource  =? "desktop_window" --> doIgnore
     , resource  =? "kdesktop"       --> doIgnore ] <+> namedScratchpadManageHook myScratchPads
 
@@ -382,11 +412,11 @@ delayedSpawn c = spawn ("sleep 2 && " ++ c)
 --
 -- By default, do nothing.
 myStartupHook = do
-    spawn "killall conky"
+    -- spawn "killall conky"
     result <- runProcessWithInput "xrandr" ["--listmonitors"] []
     spawn $ xrandr result
     spawnOnce "picom"
-    delayedSpawn "conky -c $HOME/.xmonad/nord.conky"
+    -- delayedSpawn "conky -c $HOME/.xmonad/nord.conky"
     delayedSpawn "xinput --map-to-output \"ELAN9008:00 04F3:2ED7\" eDP-1"
     delayedSpawn "feh --bg-fill $HOME/.config/wallpapers/totoro-nord.png"
 
