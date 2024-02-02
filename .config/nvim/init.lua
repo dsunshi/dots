@@ -44,11 +44,19 @@ require('packer').startup(function(use)
             {'mfussenegger/nvim-dap'} -- generic neovim <-> debugger connection
         }
     }
-
+	
+	use 'neovimhaskell/haskell-vim'
+	
+	-- Language independent
+	use {
+        'nvim-treesitter/nvim-treesitter',
+        run = ':TSUpdate'
+    }
     --
     --
     use 'ixru/nvim-markdown'
     use 'dhruvasagar/vim-table-mode'
+	use 'godlygeek/tabular'
 
     -- Status line
     -- =========================================================================
