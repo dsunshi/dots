@@ -23,10 +23,12 @@ require('packer').startup(function(use)
     }
     -- Appearance
     -- =========================================================================
-    use { 'rose-pine/neovim', as = 'rose-pine' }
     use 'norcalli/nvim-colorizer.lua'    -- Display colors in Vim
     use 'shaunsingh/nord.nvim'
 
+    -- General Editing
+    -- =========================================================================
+    use 'godlygeek/tabular'
 
     -- Code Editing (IDE)
     -- =========================================================================
