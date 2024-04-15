@@ -11,7 +11,7 @@ local opt = vim.opt
 
 opt.number         = true                          -- Show line numbers in gutter
 opt.relativenumber = true                          -- Show relative numbers in gutter
-opt.textwidth      = 80                            -- Automatically hard wrap at 80 columns
+opt.textwidth      = 120                           -- Automatically hard wrap at 120
 opt.scrolloff      = 3                             -- Start scrolling 3 lines before edge of viewport
 opt.cursorline     = true                          -- Highlight current line
 opt.expandtab      = true                          -- Always use spaces instead of tabs
