@@ -5,7 +5,7 @@
 -- =============================================================================
 local opt = vim.opt
 
-opt.guifont       = 'JetBrainsMono NF:h16'    -- Patched version from https://www.nerdfonts.com/#home
+opt.guifont       = 'Iosevka:h16'
 opt.belloff       = 'all'                     -- Never ring the bell for any reason
 opt.splitbelow    = true                      -- Open horizontal splits below current window
 opt.splitright    = true                      -- Open vertical splits to the right of the current window

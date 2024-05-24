@@ -10,3 +10,4 @@
 auto-save-list
 tramp
 .\#*
+.config/nvim/plugin/packer_compiled.lua

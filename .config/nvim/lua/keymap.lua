@@ -13,3 +13,7 @@ map("n", "<leader>fg", "<cmd>lua require('telescope.builtin').live_grep()<cr>", 
 map("n", "<leader>fb", "<cmd>lua require('telescope.builtin').buffers()<cr>",   default_opts)
 map("n", "<leader>fh", "<cmd>lua require('telescope.builtin').help_tags()<cr>", default_opts)
 map('n', '<leader>gs', "<cmd>lua require'telescope.builtin'.git_status()<cr>",  default_opts)
+
+-- disable F-15
+vim.cmd('noremap <F15> <Nop>')
+vim.cmd('inoremap <F15> <Nop>')

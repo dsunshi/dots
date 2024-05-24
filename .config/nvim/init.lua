@@ -7,6 +7,7 @@ vim.cmd [[packadd packer.nvim]]
 require('packer').startup(function(use)
     -- Have Packer manage itself
     use { 'wbthomason/packer.nvim', opt = true }
+	use { 'freitass/todo.txt-vim' }
 
     -- Searching
     -- =========================================================================
@@ -23,10 +24,12 @@ require('packer').startup(function(use)
     }
     -- Appearance
     -- =========================================================================
-    use { 'rose-pine/neovim', as = 'rose-pine' }
     use 'norcalli/nvim-colorizer.lua'    -- Display colors in Vim
     use 'shaunsingh/nord.nvim'
 
+    -- General Editing
+    -- =========================================================================
+    use 'godlygeek/tabular'
 
     -- Code Editing (IDE)
     -- =========================================================================
@@ -64,6 +67,7 @@ end)
 -- =============================================================================
 -- Make sure the updated leader mapping is done early
 vim.g.mapleader = ' '           -- Map leader to space
+vim.g.maplocalleader = ','      -- Map leader to space
 
 -- setup must be called before loading
 vim.o.termguicolors = true
