@@ -14,6 +14,8 @@ map("n", "<leader>fb", "<cmd>lua require('telescope.builtin').buffers()<cr>",   
 map("n", "<leader>fh", "<cmd>lua require('telescope.builtin').help_tags()<cr>", default_opts)
 map('n', '<leader>gs', "<cmd>lua require'telescope.builtin'.git_status()<cr>",  default_opts)
 
+map('n', '<leader>dd', "<cmd>lua vim.diagnostic.open_float()<cr>",  default_opts)
+
 -- disable F-15
 vim.cmd('noremap <F15> <Nop>')
 vim.cmd('inoremap <F15> <Nop>')
