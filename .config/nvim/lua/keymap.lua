@@ -15,6 +15,8 @@ map("n", "<leader>fh", "<cmd>lua require('telescope.builtin').help_tags()<cr>", 
 map('n', '<leader>gs', "<cmd>lua require'telescope.builtin'.git_status()<cr>",  default_opts)
 
 map('n', '<leader>dd', "<cmd>lua vim.diagnostic.open_float()<cr>",  default_opts)
+map('t', '<ESC>', "<C-\\><C-n>", default_opts)
+-- vim.api.nvim_set_keymap(  't'  ,  '<Leader><ESC>'  ,  '<C-\\><C-n>'  ,  {noremap = true}  )
 
 -- disable F-15
 vim.cmd('noremap <F15> <Nop>')
